@@ -1,4 +1,4 @@
-name: filter_test
+name: filter
 channels:
   - pytorch
   - defaults
