@@ -1,0 +1,8 @@
+# Datafiles
+*.npy
+*.xlsx
+*.pt
+*.pdf
+
+# Folders
+data/
