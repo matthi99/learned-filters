@@ -1,6 +1,8 @@
 # Learned filters
 
+Let $A \mathbb{X} \rightarrow \mathbb{Y} be a bounded linear operator between two Hilbert spaces. We consider the inverse problem
 
+$$A x^+ + z =y^{\delta}$$
 
 ## Getting started
 
