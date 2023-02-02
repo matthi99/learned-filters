@@ -1,94 +1,85 @@
 # Learned filters
 
-Let $A \mathbb{X} \rightarrow \mathbb{Y} be a bounded linear operator between two Hilbert spaces. We consider the inverse problem
 
-$$A x^+ + z =y^{\delta}$$
+# Introduction
 
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+Let $`\mathbf{A}: \mathbb{X} \rightarrow \mathbb{Y}`$  be a bounded linear operator between two Hilbert spaces $`\mathbb{X}`$ and $`\mathbb{Y}`$. We consider the inverse problem
+```math
+\mathbf{A} x^+ + z =y^{\delta}
 ```
-cd existing_repo
-git remote add origin https://git.uibk.ac.at/c7021123/learned-filters.git
-git branch -M main
-git push -uf origin main
+where $`z`$ is the data pertubation with $` \|z\| \leq \delta`$ for some noise level  $`\delta >0, y^{\delta}`$ is the given noisy data, and we aim to find a stable solution for the signal $`x^+`$. Inverting the operator $`\mathbf{A}`$ is ill-posed in the sense that the Moore-Penrose inverse  $`\mathbf{A}^+`$ is discontinuous, so small errors in the data could significantl enlarge during the solution procedure. To adress this issue regularization methods have bee developed with the goal of finding an approximate but stable solution. 
+
+If the operator  $`\mathbf{A}`$ has a diagonal frame decomposition (DFD) $`(u_\lambda, v_\lambda, \kappa_\lambda)_{\lambda \in \Lambda}`$ a strategy for regularizing inverse problems is the use of non-linear filtered diagonal frame decomposition
+```math
+\mathcal{F}_\alpha(y^\delta) := \sum_{\lambda \in \Lambda} \frac{1}{\kappa_\lambda} \varphi_\alpha(\kappa_\lambda, \langle y^\delta,  v_\lambda \rangle) \bar{u}_\lambda
 ```
+where $`\varphi_\alpha: \mathbb{R}_+ \times \mathbb{R} \rightarrow \mathbb{R}`$ is a non-linear regularizing filter. (Cite paper) shows that if the filters $`\varphi_\alpha`$ meet certain conditions the non-linear DFD is a convergent regularization method. 
 
-## Integrate with your tools
+Although some of the required properties for the filters $`\varphi`$ are intuitively quite reasonable, it is not clear at all how an optimal non linear filter should look like. This repoitory is trying to adress this issue by learning non-linear regularizing filters using neural networks for specific examples. To be precize the Radon transform is chosen as the forward operator and the noise $`z`$ is assumed to be white noise. The available DFDs of the radon transform are all based on wavelet transforms. 
 
-- [ ] [Set up project integrations](https://git.uibk.ac.at/c7021123/learned-filters/-/settings/integrations)
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
 
-## Test and Deploy
+# Instalation
 
-Use the built-in continuous integration in GitLab.
+1. Download the [SARS-COV-2 Ct-Scan Dataset](https://www.kaggle.com/datasets/plameneduardo/sarscov2-ctscan-dataset). Make shure the data set is saved in this structure
+``` 
+DATASET_FOLDER/
+├── COVID 
+├── non-COVID
+```
+Note that the COVID folder is optional and does not have to be present.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+2. Clone the git repository. 
+```
+git clone https://git.uibk.ac.at/c7021123/learned-filters.git
+``` 
 
-***
+3. Intall and activate the virtual environment.
+```
+cd learned-filters
+conda env create -f env_filter.yml
+conda activate filter
+``` 
 
-# Editing this README
+# Usage
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Preprocessing
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+To prepare the downloaded dataset for training run the following command in your console
+```
+python3 create_data.py DATASET_FOLDER --number XXX
+``` 
+With `--number` you can specify how many pairs od training data should be generated (`default=500`). The maximal number which can be chosen is 1229. 
+When running `create_data.py` the preprocessed images will be saved in your `DATASET_FOLDER`. 
 
-## Name
-Choose a self-explaining name for your project.
+## Training
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+To train the framework run the command
+```
+python3 train.py --wave 'WAVELET' --levels XXX --s2n-ratio XXX --N_epochs XXX
+``` 
+- `--wave` specifies based on which wavelet the DFD of the Radon tranform should be performed (`default='wave'`). The code uses the Pytorch Wavelet Toolbox (ptwt) which supports discrete wavelets, see also `pywt.wavelist(kind='discrete')`. 
+- `--levels` specifies up to how many levels the wavelet decomposition should be performed (`default=8`). Since the size of the preprocessed images in the training set is $`256 \times 256`$ it has to be an integer between 1 and 8. 
+- `--s2n_ratio` choses what what signal-to-noise ratio the filters should be learned (`default=8`). Possible signal-to-noise ratios are 2,4,8,16,32,64,128,256, 512 
+- `--N_epochs` defines for how many epochs the networks should be trained (`default=100`)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Testing
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+To test the final regularization model on your own images run
+```
+python3 test.py INPUT_FOLDER OUTPUT_FOLDER --wave 'WAVELET' --levels XXX --s2n-ratio XXX 
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+``` 
+The images in the `INPUT_FOLDER` should be of PNG or JPG format and of course the chosen configuation must have been trained beforehand. Also select a separate `OUTPUT_FOLDER` for each configuration!
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
 
 ## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Matthias Schwab<sup>1,2</sup>, Andrea Ebner<sup>1</sup>
 
-## License
-For open source projects, say how it is licensed.
+<sup>1</sup> Department of Mathematics, University of Innsbruck, Technikerstrasse 13, 6020 Innsbruck, Austria
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+<sup>2</sup> University Hospital for Radiology, Medical University Innsbruck, Anichstraße 35, 6020 Innsbruck, Austria
+
+
+
