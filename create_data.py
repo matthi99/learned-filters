@@ -5,85 +5,74 @@ Created on Mon Jul  4 20:24:20 2022
 @author: matth
 """
 import numpy as np
-import torch
-import pywt
-import ptwt
-
-from skimage.data import shepp_logan_phantom
 from skimage.transform import radon, iradon
-from matplotlib import pyplot as plt
-
-import torch.nn as nn
-from torch.utils.data import  Dataset, DataLoader, TensorDataset
 
 import os
-import pydicom
-
+import shutil
+import argparse
+from tqdm import tqdm
 import cv2
 
-from functions import preprocess
+parser = argparse.ArgumentParser(description= 'Define parameters for training')
+
+parser.add_argument('path', help="Path to folder were CT data is stored", type=str)
+parser.add_argument('--number', help="Total amount of CT images to preprocess (max=1.229)", type=int, default=500) 
+args = parser.parse_args()
 
 
+folder = args.path
+savepath=args.path+'/preprocessed/'
+number=args.number
+
+text_file = open("path_to_data.txt", "w")
+text_file.write(savepath)
+text_file.close()
+
+#delete old data
+if os.path.exists(savepath):
+    shutil.rmtree(savepath)
+
+os.makedirs(savepath)
+os.makedirs(savepath+'train/')
+os.makedirs(savepath+'test/')
+
+width=256
+height=256
+angles=512
+s2n_ratio=np.array([2,4,8,16,32,64,128,256,512])
 
 #files
-filelist=[]
-folder = "MRT_Bilder/"
-patients = [d for d in os.listdir(folder) if os.path.isdir(folder + d)]
-for patient in patients:
-    datadir = os.path.join(folder, patient)
-    files = os.listdir(datadir)
-    for file in files:
-        filelist.append(os.path.join(datadir, file))
-                
+#only take non covid patients
+ct_list=os.listdir(folder+'non-COVID/')[0:number]
 
+#prepare and save data
+#only need 500 scans
+count=0
+for ct in tqdm(ct_list):
+    count+=1
+    x=cv2.imread(folder+'non-COVID/'+ct,cv2.IMREAD_GRAYSCALE)
+    x=x/255
+    x=x-(1/2)
+    x=2*x
+    x=cv2.resize(x, (256,256))
+    data={}
+    data['signal_to_noise']=s2n_ratio
+    data['x']=x
+    data['x_fbp']=[]
+    y=radon(x,np.arange(angles)/(angles/180), circle=False)
+    for i in range(len(s2n_ratio)):    
+        sigma=np.sqrt(np.mean(y**2)/s2n_ratio[i])
+        z=sigma*np.random.randn(y.shape[0], angles)
+        y_delta=y+z
+        x_fbp=iradon(y_delta, circle=False)
+        data['x_fbp'].append(x_fbp)
         
-data={}
-sigma=2
-wave= 'sym10'
+
+    savename=ct.split('(')[0][0:-1]+'_'+ct.split('(')[1][0:-5]
+    if count < int((4/5)*number):
+        np.save(savepath+'train/'+savename+'.npy', data)
+    else:
+        np.save(savepath+'test/'+savename+'.npy', data)
     
+print("Created training and testdataset in ", savepath)    
     
-#images
-width=400
-height=400
-angles=720
-fs=[]
-    
-for file in filelist:
-    x = pydicom.dcmread(file).pixel_array
-    x = (x- np.mean(x))/np.std(x)
-    #x=x/np.max(x)
-    temp=x.shape
-    x=np.pad(x,((int((width-temp[0])/2),int((height-temp[0])/2)), (int((width-temp[1])/2),int((height-temp[1])/2))))
-    fs.append(x)
-    
-N=len(fs)
-fs=np.reshape(fs, (len(fs), width,height))    
-data['images']=fs
-    
-    
-#coefficients
-coeffs=[]
-    
-for j in range(N):
-    f=fs[j]
-    g=radon(f,np.arange(angles)/(angles/180))
-    noise=sigma*np.random.randn(width,angles)
-    gdelta = g + noise
-    f_FBP=iradon(gdelta)
-    coeff, L1, L2, =preprocess(f_FBP, wave)
-    coeffs.append(coeff)
-    if j%10==0:
-        print(j)
-        
-coeffs=np.reshape(coeffs,(len(coeffs), coeffs[0].shape[0],coeffs[0].shape[1]))
-    
-#save
-data['coefficients']=coeffs
-    
-data['upper']=np.max(coeffs)
-data['lower']=np.min(coeffs)
-    
-data['L1']=L1
-data['L2']=L2
-    
-np.save('Data_sigma_'+str(sigma)+'.npy', data)

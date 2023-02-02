@@ -1,6 +1,8 @@
 name: filter
 channels:
   - pytorch
+  - conda-forge
+  - anaconda
   - defaults
 dependencies:
   - alabaster=0.7.12=pyhd3eb1b0_0
@@ -18,9 +20,10 @@ dependencies:
   - black=19.10b0=py_0
   - blas=1.0=mkl
   - bleach=4.1.0=pyhd3eb1b0_0
+  - brotli=1.0.9=ha925a31_2
   - brotlipy=0.7.0=py39h2bbff1b_1003
-  - ca-certificates=2022.4.26=haa95532_0
-  - certifi=2022.6.15=py39haa95532_0
+  - ca-certificates=2022.12.7=h5b45459_0
+  - certifi=2022.12.7=pyhd8ed1ab_0
   - cffi=1.15.0=py39h2bbff1b_1
   - chardet=4.0.0=py39haa95532_1003
   - charset-normalizer=2.0.4=pyhd3eb1b0_0
@@ -29,6 +32,9 @@ dependencies:
   - colorama=0.4.5=py39haa95532_0
   - cryptography=37.0.1=py39h21b164f_0
   - cudatoolkit=11.3.1=h59b6b97_2
+  - cycler=0.11.0=pyhd3eb1b0_0
+  - cytoolz=0.11.0=py39h2bbff1b_0
+  - dask-core=2022.5.0=py39haa95532_0
   - debugpy=1.5.1=py39hd77b12b_0
   - decorator=5.1.1=pyhd3eb1b0_0
   - defusedxml=0.7.1=pyhd3eb1b0_0
@@ -38,9 +44,12 @@ dependencies:
   - executing=0.8.3=pyhd3eb1b0_0
   - flake8=3.9.0=pyhd3eb1b0_0
   - freetype=2.10.4=hd328e21_0
+  - fsspec=2022.3.0=py39haa95532_0
   - future=0.18.2=py39haa95532_1
+  - icc_rt=2019.0.0=h0cc432a_1
   - icu=58.2=ha925a31_3
   - idna=3.3=pyhd3eb1b0_0
+  - imageio=2.9.0=pyhd3eb1b0_0
   - imagesize=1.4.1=py39haa95532_0
   - importlib-metadata=4.11.3=py39haa95532_0
   - importlib_metadata=4.11.3=hd3eb1b0_0
@@ -65,8 +74,10 @@ dependencies:
   - libtiff=4.2.0=he0120a3_1
   - libuv=1.40.0=he774522_0
   - libwebp=1.2.2=h2bbff1b_0
+  - locket=1.0.0=py39haa95532_0
   - lz4-c=1.9.3=h2bbff1b_1
   - markupsafe=2.1.1=py39h2bbff1b_0
+  - matplotlib-base=3.5.1=py39hd77b12b_1
   - matplotlib-inline=0.1.2=pyhd3eb1b0_2
   - mccabe=0.6.1=py39haa95532_1
   - mistune=0.8.4=py39h2bbff1b_1000
@@ -74,19 +85,22 @@ dependencies:
   - mkl-service=2.4.0=py39h2bbff1b_0
   - mkl_fft=1.3.1=py39h277e83a_0
   - mkl_random=1.2.2=py39hf11a4ad_0
+  - munkres=1.1.4=py_0
   - mypy_extensions=0.4.3=py39haa95532_1
   - nbclient=0.5.13=py39haa95532_0
   - nbconvert=6.4.4=py39haa95532_0
   - nbformat=5.3.0=py39haa95532_0
   - nest-asyncio=1.5.5=py39haa95532_0
+  - networkx=2.7.1=pyhd3eb1b0_0
   - numpy=1.22.3=py39h7a0a035_0
   - numpy-base=1.22.3=py39hca35cd5_0
   - numpydoc=1.4.0=py39haa95532_0
-  - openssl=1.1.1q=h2bbff1b_0
+  - openssl=1.1.1s=h2bbff1b_0
   - packaging=21.3=pyhd3eb1b0_0
   - pandocfilters=1.5.0=pyhd3eb1b0_0
   - paramiko=2.8.1=pyhd3eb1b0_0
   - parso=0.7.0=py_0
+  - partd=1.2.0=pyhd3eb1b0_1
   - pathspec=0.7.0=py_0
   - pexpect=4.8.0=pyhd3eb1b0_3
   - pickleshare=0.7.5=pyhd3eb1b0_1003
@@ -120,6 +134,7 @@ dependencies:
   - pytorch=1.12.0=py3.9_cuda11.3_cudnn8_0
   - pytorch-mutex=1.0=cuda
   - pytz=2022.1=py39haa95532_0
+  - pywavelets=1.3.0=py39h2bbff1b_0
   - pywin32=302=py39h2bbff1b_2
   - pywin32-ctypes=0.2.0=py39haa95532_1000
   - pyyaml=6.0=py39h2bbff1b_1
@@ -133,6 +148,7 @@ dependencies:
   - requests=2.28.1=py39haa95532_0
   - rope=0.22.0=pyhd3eb1b0_0
   - rtree=0.9.7=py39h2eaa2aa_1
+  - scikit-image=0.16.2=py39hf11a4ad_0
   - setuptools=61.2.0=py39haa95532_0
   - sip=4.19.13=py39hd77b12b_0
   - six=1.16.0=pyhd3eb1b0_1
@@ -155,9 +171,11 @@ dependencies:
   - three-merge=0.1.1=pyhd3eb1b0_0
   - tk=8.6.12=h2bbff1b_0
   - toml=0.10.2=pyhd3eb1b0_0
+  - toolz=0.11.2=pyhd3eb1b0_0
   - torchaudio=0.12.0=py39_cu113
   - torchvision=0.13.0=py39_cu113
   - tornado=6.1=py39h2bbff1b_0
+  - tqdm=4.64.1=pyhd8ed1ab_0
   - traitlets=5.1.1=pyhd3eb1b0_0
   - typed-ast=1.4.3=py39h2bbff1b_1
   - typing-extensions=4.1.1=hd3eb1b0_0
@@ -182,7 +200,6 @@ dependencies:
   - zlib=1.2.12=h8cc25b3_2
   - zstd=1.5.2=h19a0ad4_0
   - pip:
-    - cycler==0.11.0
     - fonttools==4.34.4
     - kiwisolver==1.4.3
     - matplotlib==3.5.2
@@ -193,5 +210,4 @@ dependencies:
     - pyqt5-sip==12.11.0
     - pyqtwebengine==5.15.6
     - pyqtwebengine-qt5==5.15.2
-    - pywavelets==1.3.0
     - scipy==1.8.1

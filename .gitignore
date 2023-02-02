@@ -3,6 +3,10 @@
 *.xlsx
 *.pt
 *.pdf
+*.txt
 
 # Folders
 data/
+RESULTS_FOLDER/
+Literatur/
+test/
