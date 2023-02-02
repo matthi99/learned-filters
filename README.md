@@ -1,41 +1,36 @@
 # Learned filters
 
+This repository is created for learning non-linear regularizing filters for inverting the Radon transform. For more detail about non-linear regularizing filters see:
+
+```
+Ebner, A., & Haltmeier, M. (2023). When noise and data collide: Using non-linear Filters to save the day in inverse problems. Best Journal you can imagine, 62, 66-83.
+```
 
 # Introduction
 
 Let $`\mathbf{A}: \mathbb{X} \rightarrow \mathbb{Y}`$  be a bounded linear operator between two Hilbert spaces $`\mathbb{X}`$ and $`\mathbb{Y}`$. We consider the inverse problem
 ```math
-\mathbf{A} x^+ + z =y^{\delta}
+\mathbf{A} x^+ + z =y^{\delta},
 ```
-where $`z`$ is the data pertubation with $` \|z\| \leq \delta`$ for some noise level  $`\delta >0, y^{\delta}`$ is the given noisy data, and we aim to find a stable solution for the signal $`x^+`$. Inverting the operator $`\mathbf{A}`$ is ill-posed in the sense that the Moore-Penrose inverse  $`\mathbf{A}^+`$ is discontinuous, so small errors in the data could significantl enlarge during the solution procedure. To adress this issue regularization methods have bee developed with the goal of finding an approximate but stable solution. 
+where $`z`$ is the data pertubation with $` \|z\| \leq \delta`$ for some noise level  $`\delta >0, y^{\delta}`$ is the given noisy data, and we aim to find a stable solution for the signal $`x^+`$. Inverting the operator $`\mathbf{A}`$ is ill-posed in the sense that the Moore-Penrose inverse  $`\mathbf{A}^+`$ is discontinuous, so small errors in the data could significantly enlarge during the solution procedure. To adress this issue regularization methods have bee developed with the goal of finding an approximate but stable solution. 
 
-If the operator  $`\mathbf{A}`$ has a diagonal frame decomposition (DFD) $`(u_\lambda, v_\lambda, \kappa_\lambda)_{\lambda \in \Lambda}`$ a strategy for regularizing inverse problems is the use of non-linear filtered diagonal frame decomposition
+If the operator  $`\mathbf{A}`$ has a diagonal frame decomposition (DFD) $`(u_\lambda, v_\lambda, \kappa_\lambda)_{\lambda \in \Lambda}`$ a strategy for regularizing inverse problems is the use of non-linear filtered DFD
 ```math
 \mathcal{F}_\alpha(y^\delta) := \sum_{\lambda \in \Lambda} \frac{1}{\kappa_\lambda} \varphi_\alpha(\kappa_\lambda, \langle y^\delta,  v_\lambda \rangle) \bar{u}_\lambda
 ```
-where $`\varphi_\alpha: \mathbb{R}_+ \times \mathbb{R} \rightarrow \mathbb{R}`$ is a non-linear regularizing filter. (Cite paper) shows that if the filters $`\varphi_\alpha`$ meet certain conditions the non-linear DFD is a convergent regularization method. 
+where $`\varphi_\alpha: \mathbb{R}_+ \times \mathbb{R} \rightarrow \mathbb{R}`$ is a non-linear regularizing filter. One can show that if the filters $`\varphi_\alpha`$ meet certain conditions the non-linear DFD is a convergent regularization method. 
 
-Although some of the required properties for the filters $`\varphi`$ are intuitively quite reasonable, it is not clear at all how an optimal non linear filter should look like. This repoitory is trying to adress this issue by learning non-linear regularizing filters using neural networks for specific examples. To be precize the Radon transform is chosen as the forward operator and the noise $`z`$ is assumed to be white noise. The available DFDs of the radon transform are all based on wavelet transforms. 
-
-
+Although some of the required properties for the filters $`\varphi_\alpha`$ are intuitively quite reasonable, it is not clear at all how an optimal non-linear filter should look like. This repoitory is trying to adress this issue by learning non-linear regularizing filters using neural networks for specific examples. To be precise the Radon transform is chosen as the forward operator $`\mathbf{A}`$ and the noise $`z`$ is assumed to be Gaussian white noise. The available DFDs of the Radon transform are all based on wavelet transforms and the method is trained and tested on CT scans. 
 
 
 # Instalation
 
-1. Download the [SARS-COV-2 Ct-Scan Dataset](https://www.kaggle.com/datasets/plameneduardo/sarscov2-ctscan-dataset). Make shure the data set is saved in this structure
-``` 
-DATASET_FOLDER/
-├── COVID 
-├── non-COVID
-```
-Note that the COVID folder is optional and does not have to be present.
-
-2. Clone the git repository. 
+1. Clone the git repository. 
 ```
 git clone https://git.uibk.ac.at/c7021123/learned-filters.git
 ``` 
 
-3. Intall and activate the virtual environment.
+2. Intall and activate the virtual environment.
 ```
 cd learned-filters
 conda env create -f env_filter.yml
@@ -45,8 +40,15 @@ conda activate filter
 # Usage
 
 ## Preprocessing
+1. Download the [SARS-COV-2 Ct-Scan Dataset](https://www.kaggle.com/datasets/plameneduardo/sarscov2-ctscan-dataset). Make shure the data set is saved in this structure
+``` 
+DATASET_FOLDER/
+├── COVID 
+├── non-COVID
+```
+Note that the COVID folder is optional and does not have to be present.
 
-To prepare the downloaded dataset for training run the following command in your console
+2. Prepare the downloaded dataset for training. For this run the following command in your console
 ```
 python3 create_data.py DATASET_FOLDER --number XXX
 ``` 
