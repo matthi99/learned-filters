@@ -61,7 +61,7 @@ To train the framework run the command
 ```
 python3 train.py --wave 'WAVELET' --levels XXX --s2n-ratio XXX --N_epochs XXX
 ``` 
-- `--wave` specifies based on which wavelet the DFD of the Radon tranform should be performed (`default='wave'`). The code uses the Pytorch Wavelet Toolbox (ptwt) which supports discrete wavelets, see also `pywt.wavelist(kind='discrete')`. 
+- `--wave` specifies based on which wavelet the DFD of the Radon tranform should be performed (`default='haar'`). The code uses the Pytorch Wavelet Toolbox (ptwt) which supports discrete wavelets, see also `pywt.wavelist(kind='discrete')`. 
 - `--levels` specifies up to how many levels the wavelet decomposition should be performed (`default=8`). Since the size of the preprocessed images in the training set is $`256 \times 256`$ it has to be an integer between 1 and 8. 
 - `--s2n_ratio` choses what what signal-to-noise ratio the filters should be learned (`default=8`). Possible signal-to-noise ratios are 2,4,8,16,32,64,128,256, 512 
 - `--N_epochs` defines for how many epochs the networks should be trained (`default=100`)
