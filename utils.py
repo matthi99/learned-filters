@@ -114,27 +114,32 @@ def reconstruct(nets, x_fbp, levels, wave):
         rec=ptwt.waverec2(denoised_coeff, wave)
     return rec
 
-def save_checkpoint(nets,s2n_ratio, wave, best):
+def save_checkpoint(nets,s2n_ratio, wave, noise, best):
+    
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/weights/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/weights/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/')
     for i in range(len(nets)):
-        savepath= 'RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
+        savepath= 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
         torch.save(nets[i].state_dict(), savepath)
 
 
-def plot_filter(nets, s2n_ratio, wave, device):
+def plot_filter(nets, s2n_ratio, wave, noise, device):
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/plots/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/plots/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/plots/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/plots/')
     for i in range(len(nets)):
-            savepath='RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/plots/level_'+str(i+1)+'.png'
+            savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/plots/level_'+str(i+1)+'.png'
             j=i+1 #der Scale index: -j 
             kappa=2**(-j/2) #quasi-singulär-wert 
             x=kappa*torch.linspace(-10, 10, 100, device=device)
@@ -147,12 +152,14 @@ def plot_filter(nets, s2n_ratio, wave, device):
             plt.savefig(savepath, dpi=300, bbox_inches="tight", pad_inches=0.1)
             plt.close()
 
-def plot_hist(hist,s2n_ratio, wave):
+def plot_hist(hist,s2n_ratio, wave, noise):
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/')
-    savepath='RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/train_progress.png'
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/')
+    savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/train_progress.png'
     plt.figure()
     plt.plot(hist['trainloss'])
     plt.plot(hist['testloss'])

@@ -25,6 +25,7 @@ parser.add_argument('--levels', help="Number of levels in wavelet transform. Has
 parser.add_argument('--s2n_ratio', help="possible signal-to-noise ratios are: 2,4,8,16,32,64,128,256,512", 
                     type=int, default=8)
 parser.add_argument('--N_epochs', help="Specify how many epochs should be trained", type=int, default=100)
+parser.add_argument('--noise', help= "Noise type", type=str, default ="gaussian")
 args = parser.parse_args()
 
 
@@ -32,10 +33,12 @@ wave= args.wave
 levels=args.levels #Maximal 8 possible levels
 s2n_ratio=args.s2n_ratio #possible signal to noise ratios are: 2,4,8,16,32,64,128,256,512 
 N_epochs=args.N_epochs
+noise = args.noise
 
 #get path to preprocessed data
 f = open("path_to_data.txt", "r")
 folder=f.read()
+folder=folder+ '/preprocessed_'+ noise +'/'
 
 if not os.path.exists('RESULTS_FOLDER/'):
     os.makedirs('RESULTS_FOLDER/')
@@ -96,8 +99,8 @@ for epoch in range(N_epochs):
         if l < best_loss:
             print(f"New best loss: {l/count}, -->Saving models")
             best_loss=l
-            save_checkpoint(nets,s2n_ratio, wave, 'best')
-            plot_filter(nets, s2n_ratio, wave, device)
+            save_checkpoint(nets,s2n_ratio, wave, noise, 'best')
+            plot_filter(nets, s2n_ratio, wave, noise, device)
         #print(scheduler.get_last_lr())
         # for i in range(levels):
         #     print(torch.sum(nets[i].lin1.weight.grad**2))
@@ -124,8 +127,8 @@ for epoch in range(N_epochs):
         plot_hist(hist,s2n_ratio, wave)
 
 #save histogram and weights
-np.save('RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/histogram.npy', hist)
-save_checkpoint(nets,s2n_ratio, wave, 'last')    
+np.save('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/histogram.npy', hist)
+save_checkpoint(nets,s2n_ratio, wave, noise, 'last')    
 
       
         
