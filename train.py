@@ -124,7 +124,7 @@ for epoch in range(N_epochs):
         
         #print('Mean rec error on train data set:', hist['trainloss'][-1])
         #print('Mean rec error on test data set:', hist['testloss'][-1])
-        plot_hist(hist,s2n_ratio, wave)
+        plot_hist(hist,s2n_ratio, wave,noise)
 
 #save histogram and weights
 np.save('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/histogram.npy', hist)

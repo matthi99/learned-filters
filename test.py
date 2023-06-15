@@ -31,6 +31,7 @@ parser.add_argument('--levels', help="Number of levels in wavelet transform. Has
                     type=int, default=8)
 parser.add_argument('--s2n_ratio', help="possible signal-to-noise ratios are: 2,4,8,16,32,64,128,256,512", 
                     type=int, default=8)
+parser.add_argument('--noise', help= "Noise type", type=str, default ="gaussian")
 
 args = parser.parse_args()
 
@@ -40,6 +41,7 @@ savefolder=args.output_folder+'/'
 wave= args.wave
 levels=args.levels #Maximal 8 possible levels
 s2n_ratio=args.s2n_ratio
+noise = args.noise
 
 angles=512
 filelist=os.listdir(folder) 
@@ -50,7 +52,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 best='best'
 nets=[]
 for i in range(levels):
-    loadpath = 'RESULTS_FOLDER/'+wave+'/'+'s2nr_'+str(s2n_ratio)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
+    loadpath = 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
     weights = torch.load(loadpath, map_location=torch.device(device))
     net=learned_filter(1,1).to(device)
     net.load_state_dict(weights)
@@ -79,6 +81,7 @@ for file in tqdm(filelist):
     inp = torch.from_numpy(inp.astype("float32")).to(device)
     rec=reconstruct(nets, inp, levels, wave)
     rec=rec[0,0,...].cpu().detach().numpy()
+    print(rec.shape,x.shape, x_fbp.shape)
     
     fig, axes = plt.subplots(1,3)
     axes[0].imshow(x, cmap='gray',vmin=-1.5,vmax=1.5)
