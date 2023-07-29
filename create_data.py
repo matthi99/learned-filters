@@ -17,7 +17,7 @@ from matplotlib import pyplot as plt
 
 parser = argparse.ArgumentParser(description= 'Define parameters for training')
 
-parser.add_argument('path', help="Path to folder were CT data is stored", type=str)
+parser.add_argument('--path', help="Path to folder were CT data is stored", type=str, default="DATASET_FOLDER/")
 parser.add_argument('--number', help="Total amount of CT images to preprocess (max=1.229)", type=int, default=500) 
 parser.add_argument('--noise', help= "Noise type", type=str, default ="gaussian")
 args = parser.parse_args()
@@ -65,19 +65,18 @@ for ct in tqdm(ct_list):
     data['signal_to_noise']=s2n_ratio
     data['x']=x
     data['x_fbp']=[]
-    if noise == "poisson":
-        x=x+1
     y=radon(x,np.arange(angles)/(angles/180), circle=False)
     for i in range(len(s2n_ratio)):    
         if noise =="gaussian":
             sigma=np.sqrt(np.mean(y**2)/s2n_ratio[i])
             z=sigma*np.random.randn(y.shape[0], angles)
         elif noise =="poisson":
+            m=np.min(y)
+            y=y-m
             z=np.random.poisson(y)-y
+            y=y+m
             scale=np.mean(y**2)/(np.mean(z**2)*s2n_ratio[i])
             z=z*np.sqrt(scale)
-            #lam=(-1+np.sqrt(1+4*(np.mean(y**2)/s2n_ratio[i])))/2
-            #z= np.random.poisson(lam=lam, size= (y.shape[0], angles))
         elif noise =="uniform":
             a=np.sqrt((3*np.mean(y**2))/s2n_ratio[i])
             z= np.random.uniform(low=-a, high=a, size=(y.shape[0], angles))
@@ -95,13 +94,8 @@ for ct in tqdm(ct_list):
         else: 
             print("Wrong argument for --noise!")
             
-        #print(np.mean(y**2)/np.mean(z**2))    
-        y_delta=y+z
-        # plt.figure()
-        # plt.imshow(y_delta)
-        # plt.show()
-        # plt.close()
         
+        y_delta=y+z
         x_fbp=iradon(y_delta, circle=False)
         data['x_fbp'].append(x_fbp)
         
