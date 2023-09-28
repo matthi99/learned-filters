@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 parser = argparse.ArgumentParser(description= 'Define parameters for training')
 
 parser.add_argument('--path', help="Path to folder were CT data is stored", type=str, default="DATASET_FOLDER/")
-parser.add_argument('--number', help="Total amount of CT images to preprocess (max=1.229)", type=int, default=500) 
+parser.add_argument('--number', help="Total amount of CT images to preprocess (max=1.229)", type=int, default=100) 
 parser.add_argument('--noise', help= "Noise type", type=str, default ="gaussian")
 args = parser.parse_args()
 
@@ -45,7 +45,8 @@ os.makedirs(savepath+'test/')
 width=256
 height=256
 angles=512
-s2n_ratio=np.array([2,4,8,16,32,64,128,256,512])
+alpha=np.array([32,28,24,20,16,12,8,4,0])
+delta=np.sqrt(185856)*alpha
 
 #files
 #only take non covid patients
@@ -62,35 +63,40 @@ for ct in tqdm(ct_list):
     x=2*x
     x=cv2.resize(x, (256,256))
     data={}
-    data['signal_to_noise']=s2n_ratio
+    data['alpha']=alpha
     data['x']=x
     data['x_fbp']=[]
     y=radon(x,np.arange(angles)/(angles/180), circle=False)
-    for i in range(len(s2n_ratio)):    
+    for i in range(len(alpha)):    
         if noise =="gaussian":
-            sigma=np.sqrt(np.mean(y**2)/s2n_ratio[i])
+            sigma=alpha[i]
+            #print(sigma)
             z=sigma*np.random.randn(y.shape[0], angles)
+            print(np.linalg.norm(z))
         elif noise =="poisson":
             m=np.min(y)
             y=y-m
             z=np.random.poisson(y)-y
             y=y+m
-            scale=np.mean(y**2)/(np.mean(z**2)*s2n_ratio[i])
-            z=z*np.sqrt(scale)
+            scale=delta[i]/np.linalg.norm(z)
+            z=z*scale
+            print(np.linalg.norm(z))
         elif noise =="uniform":
-            a=np.sqrt((3*np.mean(y**2))/s2n_ratio[i])
+            a=np.sqrt(3)*alpha[i]
             z= np.random.uniform(low=-a, high=a, size=(y.shape[0], angles))
+            print(np.linalg.norm(z))
         elif noise == "saltpepper":
             z=np.zeros_like(y)
             ma=np.max(y)
             mi=np.min(y)
-            while np.mean(z**2)<np.mean(y**2)/s2n_ratio[i]:
+            while np.linalg.norm(z)<delta[i]:
                 x_coord=np.random.randint(0, y.shape[0])
                 y_coord=np.random.randint(0, angles)
                 if np.random.uniform() <0.5:
                     z[x_coord,y_coord]=mi-y[x_coord,y_coord]
                 else:
                     z[x_coord,y_coord]=ma-y[x_coord,y_coord]
+            print(np.linalg.norm(z))
         else: 
             print("Wrong argument for --noise!")
             

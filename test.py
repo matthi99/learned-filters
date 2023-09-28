@@ -28,9 +28,9 @@ parser = argparse.ArgumentParser(description= 'Define parameters for testing. Of
 parser.add_argument('--wave', help="Define which wavelet transform should be used", type=str, default="haar")
 parser.add_argument('--levels', help="Number of levels in wavelet transform. Has to be integer between 1 and 8", 
                     type=int, default=8)
-parser.add_argument('--s2n_ratio', help="possible signal-to-noise ratios are: 2,4,8,16,32,64,128,256,512", 
-                    type=int, default=4)
-parser.add_argument('--noise', help= "Noise type", type=str, default ="uniform")
+parser.add_argument('--alpha', help="possible signal-to-noise ratios are: 2,4,8,16,32,64,128,256,512", 
+                    type=int, default=2)
+parser.add_argument('--noise', help= "Noise type", type=str, default ="gaussian")
 
 args = parser.parse_args()
 
@@ -38,7 +38,8 @@ args = parser.parse_args()
 
 wave= args.wave
 levels=args.levels #Maximal 8 possible levels
-s2n_ratio=args.s2n_ratio
+alpha=args.alpha
+delta=np.sqrt(185856)*alpha
 noise = args.noise
 
 
@@ -46,11 +47,11 @@ f = open("path_to_data.txt", "r")
 folder=f.read()
 folder=folder+ '/non-COVID/'
 
-savefolder="RESULTS_FOLDER/"+ wave +"/"+ noise +"/" +'s2nr_'+str(s2n_ratio) +"/results/"
+savefolder="RESULTS_FOLDER/"+ wave +"/"+ noise +"/" +'alpha_'+str(alpha) +"/results/"
 if not os.path.exists(savefolder):
     os.makedirs(savefolder)
 angles=512
-filelist=os.listdir(folder) 
+filelist=os.listdir(folder)[0:20]
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -58,7 +59,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 best='best'
 nets=[]
 for i in range(levels):
-    loadpath = 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
+    loadpath = 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
     weights = torch.load(loadpath, map_location=torch.device(device))
     net=learned_filter(1,1).to(device)
     net.load_state_dict(weights)
@@ -80,23 +81,23 @@ for file in tqdm(filelist):
     x=cv2.resize(x, (256,256))
     y=radon(x,np.arange(angles)/(angles/180), circle=False)
     if noise =="gaussian":
-        sigma=np.sqrt(np.mean(y**2)/s2n_ratio)
+        sigma=alpha
         z=sigma*np.random.randn(y.shape[0], angles)
     elif noise =="poisson":
         m=np.min(y)
         y=y-m
         z=np.random.poisson(y)-y
         y=y+m
-        scale=np.mean(y**2)/(np.mean(z**2)*s2n_ratio)
+        scale=delta/np.linalg.norm(z)
         z=z*np.sqrt(scale)
     elif noise =="uniform":
-        a=np.sqrt((3*np.mean(y**2))/s2n_ratio)
+        a=np.sqrt(3)*alpha
         z= np.random.uniform(low=-a, high=a, size=(y.shape[0], angles))
     elif noise == "saltpepper":
         z=np.zeros_like(y)
         ma=np.max(y)
         mi=np.min(y)
-        while np.mean(z**2)<np.mean(y**2)/s2n_ratio:
+        while np.linalg.norm(z)<delta:
             x_coord=np.random.randint(0, y.shape[0])
             y_coord=np.random.randint(0, angles)
             if np.random.uniform() <0.5:
@@ -111,7 +112,7 @@ for file in tqdm(filelist):
     inp = torch.from_numpy(inp.astype("float32")).to(device)
     rec=reconstruct(nets, inp, levels, wave)
     rec=rec[0,0,...].cpu().detach().numpy()
-    print(rec.shape,x.shape, x_fbp.shape)
+    #print(rec.shape,x.shape, x_fbp.shape)
     
     fig, axes = plt.subplots(1,3)
     axes[0].imshow(x, cmap='gray',vmin=-1.5,vmax=1.5)

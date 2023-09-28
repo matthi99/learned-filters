@@ -19,7 +19,7 @@ class Dataset(torch.utils.data.Dataset):
     This dataset loads an image and applies some transformations to it.
     """
 
-    def __init__(self, folder= "C:/Users/matthias/Desktop/Data/CT-for-filters/preprocessed/", s2n_ratio=128, 
+    def __init__(self, folder= "C:/Users/matthias/Desktop/Data/CT-for-filters/preprocessed/", alpha=4, 
                  train=True, **kwargs):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.train=train
@@ -28,15 +28,15 @@ class Dataset(torch.utils.data.Dataset):
         else:
             self.folder = folder+"test/"
         self.examples = self.get_examples()
-        self.s2n_ratio=s2n_ratio
+        self.alpha=alpha
         
         
 
     def __getitem__(self,idx):
         data = np.load(os.path.join(self.folder, self.examples[idx]), allow_pickle=True).item()
         
-        s2n_index=np.where(data['signal_to_noise']==self.s2n_ratio)[0][0]
-        inp=data['x_fbp'][s2n_index]
+        alpha_index=np.where(data['alpha']==self.alpha)[0][0]
+        inp=data['x_fbp'][alpha_index]
         inp=np.expand_dims(inp,0)
         outp=data['x']
         outp=np.expand_dims(outp,0)
@@ -114,32 +114,32 @@ def reconstruct(nets, x_fbp, levels, wave):
         rec=ptwt.waverec2(denoised_coeff, wave)
     return rec
 
-def save_checkpoint(nets,s2n_ratio, wave, noise, best):
+def save_checkpoint(nets,alpha, wave, noise, best):
     
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/')
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/')
     for i in range(len(nets)):
-        savepath= 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
+        savepath= 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
         torch.save(nets[i].state_dict(), savepath)
 
 
-def plot_filter(nets, s2n_ratio, wave, noise, device):
+def plot_filter(nets, alpha, wave, noise, device):
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/')
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/plots/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/plots/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/')
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/plots/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/plots/')
     for i in range(len(nets)):
-            savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/plots/level_'+str(i+1)+'.png'
+            savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/plots/level_'+str(i+1)+'.png'
             j=i+1 #der Scale index: -j 
             kappa=2**(-j/2) #quasi-singulär-wert 
             x=kappa*torch.linspace(-10, 10, 100, device=device)
@@ -152,14 +152,14 @@ def plot_filter(nets, s2n_ratio, wave, noise, device):
             plt.savefig(savepath, dpi=300, bbox_inches="tight", pad_inches=0.1)
             plt.close()
 
-def plot_hist(hist,s2n_ratio, wave, noise):
+def plot_hist(hist,alpha, wave, noise):
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/')
     if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
         os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/')
-    savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'s2nr_'+str(s2n_ratio)+'/train_progress.png'
+    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/'):
+        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/')
+    savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/train_progress.png'
     plt.figure()
     plt.plot(hist['trainloss'])
     plt.plot(hist['testloss'])
