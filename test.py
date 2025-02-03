@@ -202,7 +202,8 @@ for method in methods:
     print(np.mean(rel_noise)*100)
     
 
+summary_path = "RESULTS_FOLDER/"+ wave +"/"+ noise +"/" +'alpha_'+str(alpha)+"/"     
+with open(summary_path+'summary.txt', 'w') as file:
     
-with open(savefolder+'summary.txt', 'w') as file:
     json.dump(results, file, indent=4, sort_keys=False)
 
