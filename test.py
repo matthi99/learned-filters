@@ -61,21 +61,22 @@ noise = args.noise
 
 f = open("path_to_data.txt", "r")
 folder=f.read()
-folder=folder+ '/non-COVID/'
+folder=folder+ '/testset/'
 
-savefolder="RESULTS_FOLDER/"+ wave +"/"+ noise +"/" +'alpha_'+str(alpha) +"/results/"
-if not os.path.exists(savefolder):
-    os.makedirs(savefolder)
+
 angles=512
-filelist=os.listdir(folder)[501:551]
+filelist=os.listdir(folder)
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 best='best'
-methods = ["linear", "nonexpansive", "proposed", "unconstrained"]
+methods = args.types
 results={}
 for method in methods:
+    savefolder="RESULTS_FOLDER/"+ wave +"/"+ noise +"/" +'alpha_'+str(alpha)+"/" + method +"/results/"
+    if not os.path.exists(savefolder):
+        os.makedirs(savefolder)
     results[method]= {}
     MSE=[]
     rel_MSE=[]
@@ -93,11 +94,11 @@ for method in methods:
         weights = torch.load(loadpath, map_location=torch.device(device))
         if method == "linear":
             net=learned_filter_linear(1,1).to(device)
-        if method == "nonexpansive":
+        elif method == "nonexpansive":
             net=learned_filter_nonexpansive(1,1).to(device)
-        if method == "proposed":
+        elif method == "proposed":
             net=learned_filter_proposed(1,1).to(device)
-        if method == "unconstrained":
+        elif method == "unconstrained":
             net=learned_filter(1,1).to(device)
         else:
             print("Worng type spezified")
