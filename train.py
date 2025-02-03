@@ -22,10 +22,13 @@ parser = argparse.ArgumentParser(description= 'Define parameters for training')
 parser.add_argument('--wave', help="Define which wavelet transform should be used", type=str, default="haar")
 parser.add_argument('--levels', help="Number of levels in wavelet transform. Has to be integer between 1 and 8", 
                     type=int, default=8)
-parser.add_argument('--alpha', help="possible noise levels: 64,32,16,8,4,2,1,0", 
-                    type=int, default=1)
-parser.add_argument('--N_epochs', help="Specify how many epochs should be trained", type=int, default=100)
+parser.add_argument('--alpha', help="possible noise levels: 32,28,24,20,16,12,8,4,0", 
+                    type=int, default=4)
+parser.add_argument('--N_epochs', help="Specify how many epochs should be trained", type=int, default=20)
 parser.add_argument('--noise', help= "Noise type", type=str, default ="gaussian")
+parser.add_argument('--type', 
+                    help= "What type of network should be learned? Posibilities are: unconstrained, proposed, linear, nonexpasive ", 
+                    type= str, default = "proposed")
 args = parser.parse_args()
 
 
@@ -43,9 +46,14 @@ folder=folder+ '/preprocessed_'+ noise +'/'
 if not os.path.exists('RESULTS_FOLDER/'):
     os.makedirs('RESULTS_FOLDER/')
 
+
+savefolder = f"RESULTS_FOLDER/{wave}/{noise}/alpha_{str(alpha)}/{args.type}/" 
+
+
+
 #delete old results
-if os.path.exists('RESULTS_FOLDER/'+wave+'/'+'alpha_'+str(alpha)+'/'):
-    shutil.rmtree('RESULTS_FOLDER/'+wave+'/'+'alpha_'+str(alpha)+'/')
+if os.path.exists(savefolder):
+    shutil.rmtree(savefolder)
 
 #get dataloaders
 train_data = Dataset(folder=folder, alpha=alpha)  
@@ -61,10 +69,20 @@ print(f"Using {device} device")
 
 hist=get_histogram()
 best_loss=np.inf
+
     
 nets=[]
 for i in range(levels):
-    nets.append(learned_filter(1,1).to(device))
+    if args.type == "nonexpansive":
+        nets.append(learned_filter_nonexpansive(1,1).to(device))
+    elif args.type == "proposed":
+        nets.append(learned_filter_proposed(1,1).to(device))
+    elif args.type == "linear":
+        nets.append(learned_filter_linear(1,1).to(device))
+    elif args.type == "unconstrained":
+        nets.append(learned_filter(1,1).to(device))
+    else:
+        print("Worng type spezified")
 
 params=[]
 for i in range(levels):
@@ -99,11 +117,10 @@ for epoch in range(N_epochs):
         if l < best_loss:
             print(f"New best loss: {l/count}, -->Saving models")
             best_loss=l
-            save_checkpoint(nets,alpha, wave, noise, 'best')
-            plot_filter(nets, alpha, wave, noise, device)
+            save_checkpoint(nets, savefolder, 'best')
+            plot_filter(nets, savefolder, device)
         #print(scheduler.get_last_lr())
-        # for i in range(levels):
-        #     print(torch.sum(nets[i].lin1.weight.grad**2))
+        
         
         #validation
         for net in nets:
@@ -124,11 +141,11 @@ for epoch in range(N_epochs):
         
         #print('Mean rec error on train data set:', hist['trainloss'][-1])
         #print('Mean rec error on test data set:', hist['testloss'][-1])
-        plot_hist(hist,alpha, wave,noise)
+        plot_hist(hist, savefolder)
 
 #save histogram and weights
-np.save('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/histogram.npy', hist)
-save_checkpoint(nets,alpha, wave, noise, 'last')    
+np.save(f"{savefolder}/histogram.npy", hist)
+
 
       
         

@@ -72,7 +72,6 @@ for ct in tqdm(ct_list):
             sigma=alpha[i]
             #print(sigma)
             z=sigma*np.random.randn(y.shape[0], angles)
-            print(np.linalg.norm(z))
         elif noise =="poisson":
             m=np.min(y)
             y=y-m
@@ -80,11 +79,9 @@ for ct in tqdm(ct_list):
             y=y+m
             scale=delta[i]/np.linalg.norm(z)
             z=z*scale
-            print(np.linalg.norm(z))
         elif noise =="uniform":
             a=np.sqrt(3)*alpha[i]
             z= np.random.uniform(low=-a, high=a, size=(y.shape[0], angles))
-            print(np.linalg.norm(z))
         elif noise == "saltpepper":
             z=np.zeros_like(y)
             ma=np.max(y)

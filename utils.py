@@ -11,6 +11,7 @@ import os
 import torch.nn as nn
 import ptwt
 from matplotlib import pyplot as plt
+import torch.nn.utils as utils
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -69,28 +70,136 @@ class Collator:
         return torch.stack(inputs), torch.stack(outputs)
 
 
+
+
+
+class ContrainedLinear(nn.Module):
+    def __init__(self, in_features, out_features, non_expansive=False, eps=0):
+        super(ContrainedLinear, self).__init__()
+        # Initialize the weight and bias parameters
+        self.weights = nn.Parameter(torch.randn(in_features, out_features))
+        self.bias = nn.Parameter(torch.zeros(out_features))
+        self.non_expansive = non_expansive
+        self.eps = eps
+        
+
+    def forward(self, x):
+        # Apply ReLU to the weights to enforce positivity
+        weights = torch.abs(self.weights)+self.eps
+        if self.non_expansive == True:
+            weight_norm = torch.linalg.norm(weights, ord=2)  # Compute the spectral norm (largest singular value)
+            weights = weights / weight_norm.clamp(min=1.0)  # Scale the weights if norm > 1
+        return torch.matmul(x, weights)+ self.bias
+
+
+
+
+    
+class learned_filter_nonexpansive(torch.nn.Module):
+
+    def __init__(self, indim, outdim):
+        super().__init__()  
+   
+        self.lin1 = ContrainedLinear(in_features=indim, out_features=20, non_expansive= True)
+        self.lin2 = ContrainedLinear(in_features=20, out_features=20, non_expansive= True)
+        self.lin3 = ContrainedLinear(in_features=20, out_features=outdim, non_expansive= True)
+        self.act = nn.ReLU()
+        
+    def custom_act(self,xx):
+        m = xx.shape[1]
+        xx1=xx[:,0:m//3]
+        xx2=xx[:,m//3 : 2*(m//3)]
+        xx3=xx[:, 2*(m//3):]
+        out1 = self.act(xx1)
+        out2 = -self.act(-xx2)
+        out3 = self.act(xx3+1) -1 -self.act(xx3-1)
+        return torch.cat([out1, out2, out3],1)    
+        
+            
+    def phi_0(self, inp):
+        xx = torch.zeros_like(inp)
+        xx = self.custom_act(self.lin1(xx))
+        xx = self.custom_act(self.lin2(xx))
+        out = - self.lin3(xx)
+        return  out
+
+
+    def forward(self, inp):
+        xx = self.custom_act(self.lin1(inp))
+        xx = self.custom_act(self.lin2(xx))
+        out = inp - self.lin3(xx)
+        out = out -self.phi_0(inp)
+        return  out
+
+class learned_filter_proposed(torch.nn.Module):
+
+    def __init__(self, indim, outdim):
+        super().__init__()  
+   
+        self.lin1 = ContrainedLinear(in_features=indim, out_features=20, non_expansive= False, eps=1e-15)
+        self.lin2 = ContrainedLinear(in_features=20, out_features=20, non_expansive= False, eps=1e-15)
+        self.lin3 = ContrainedLinear(in_features=20, out_features=outdim, non_expansive= False, eps=1e-15)
+        self.act = nn.ReLU()
+        
+    def custom_act(self,xx):
+        m = xx.shape[1]
+        xx1=xx[:,0:m//3]
+        xx2=xx[:,m//3 : 2*(m//3)]
+        xx3=xx[:, 2*(m//3):]
+        out1 = self.act(xx1)
+        out2 = -self.act(-xx2)
+        out3 = self.act(xx3+1) -1 -self.act(xx3-1)
+        return torch.cat([out1, out2, out3],1)    
+        
+            
+    def phi_0(self, inp):
+        inp = torch.zeros_like(inp)
+        xx = self.custom_act(self.lin1(inp))
+        xx = self.custom_act(self.lin2(xx))
+        out = self.lin3(xx)
+        return  out
+
+
+    def forward(self, inp):
+        xx = self.custom_act(self.lin1(inp))
+        xx = self.custom_act(self.lin2(xx))
+        out = self.lin3(xx)
+        out = out -self.phi_0(inp)
+        return  out
+
+
 class learned_filter(torch.nn.Module):
 
     def __init__(self, indim, outdim):
         super().__init__()  
         self.lin1 = nn.Linear(in_features=indim, out_features=20)
-        self.lin2 = nn.Linear(in_features=20, out_features=40)
-        self.lin3 = nn.Linear(in_features=40, out_features=20)
-        self.lin4 = nn.Linear(in_features=20, out_features=20)
-        self.lin5 = nn.Linear(in_features=20, out_features=outdim)
-        self.flat = nn.Flatten()
-        self.act1 = nn.Tanh()
+        self.lin2 = nn.Linear(in_features=20, out_features=20)
+        self.lin3 = nn.Linear(in_features=20, out_features=outdim)
         self.actr = nn.ReLU()
-
+        
 
     def forward(self, inp):
         xx = self.actr(self.lin1(inp))
         xx = self.actr(self.lin2(xx))
-        xx = self.actr(self.lin3(xx))
-        xx = self.act1(self.lin4(xx))
-        out = self.lin5(xx)
+        out = inp + self.lin3(xx)
         return  out
 
+class learned_filter_linear(torch.nn.Module):
+
+    def __init__(self, indim, outdim):
+        super().__init__()  
+        self.lin1 = nn.Linear(in_features=indim, out_features=20, bias = False)
+        self.lin2 = nn.Linear(in_features=20, out_features=20, bias = False)
+        self.lin3 = nn.Linear(in_features=20, out_features=outdim, bias = False)
+        
+    def forward(self, inp):
+        xx = self.lin1(inp)
+        xx = self.lin2(xx)
+        out = self.lin3(xx)
+        return  out
+
+    
+    
 def get_histogram():
     hist={}
     hist['trainloss']=[]
@@ -114,32 +223,21 @@ def reconstruct(nets, x_fbp, levels, wave):
         rec=ptwt.waverec2(denoised_coeff, wave)
     return rec
 
-def save_checkpoint(nets,alpha, wave, noise, best):
-    
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/')
-    for i in range(len(nets)):
-        savepath= 'RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/weights/level_'+str(i+1)+'_'+best+'.pth'
-        torch.save(nets[i].state_dict(), savepath)
 
 
-def plot_filter(nets, alpha, wave, noise, device):
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/plots/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/plots/')
+def save_checkpoint(nets, savepath, best):
+    if not os.path.exists(savepath+'/weights/'):
+        os.makedirs(savepath+'/weights/')
     for i in range(len(nets)):
-            savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/plots/level_'+str(i+1)+'.png'
+        save= savepath+'/weights/level_'+str(i+1)+'_'+best+'.pth'
+        torch.save(nets[i].state_dict(), save)
+
+
+def plot_filter(nets, savepath, device):
+    if not os.path.exists(savepath+'/plots/'):
+        os.makedirs(savepath+'/plots/')
+    for i in range(len(nets)):
+            path=savepath+'/plots/level_'+str(i+1)+'.png'
             j=i+1 #der Scale index: -j 
             kappa=2**(-j/2) #quasi-singulär-wert 
             x=kappa*torch.linspace(-10, 10, 100, device=device)
@@ -149,17 +247,13 @@ def plot_filter(nets, alpha, wave, noise, device):
             plt.plot(x[:,0].cpu().detach().numpy(),y[:,0].cpu().detach().numpy())
             plt.plot(x[:,0].cpu().detach().numpy(),x[:,0].cpu().detach().numpy())
             plt.title('Level:'+str(i+1))
-            plt.savefig(savepath, dpi=300, bbox_inches="tight", pad_inches=0.1)
+            plt.savefig(path, dpi=300, bbox_inches="tight", pad_inches=0.1)
             plt.close()
 
-def plot_hist(hist,alpha, wave, noise):
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/')
-    if not os.path.exists('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/'):
-        os.makedirs('RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/')
-    savepath='RESULTS_FOLDER/'+wave+'/'+noise+'/'+'alpha_'+str(alpha)+'/train_progress.png'
+def plot_hist(hist,savepath):
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
+    savepath = savepath+'/train_progress.png'
     plt.figure()
     plt.plot(hist['trainloss'])
     plt.plot(hist['testloss'])
