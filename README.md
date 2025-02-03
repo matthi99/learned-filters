@@ -50,30 +50,31 @@ Note that the COVID folder is optional and does not have to be present.
 
 2. Prepare the downloaded dataset for training. For this run the following command in your console
 ```
-python3 create_data.py DATASET_FOLDER --number XXX
+python create_data.py --path DATASET_FOLDER --noise NOISE --number XXX
 ``` 
-With `--number` you can specify how many pairs od training data should be generated (`default=500`). The maximal number which can be chosen is 1229. 
+With `--number` you can specify how many pairs of training data should be generated (`default=500`). The maximal number which can be chosen is 1229.  
 When running `create_data.py` the preprocessed images will be saved in your `DATASET_FOLDER`. 
 
 ## Training
 
 To train the framework run the command
 ```
-python3 train.py --wave 'WAVELET' --levels XXX --s2n-ratio XXX --N_epochs XXX
+python train.py --wave 'WAVELET' --levels XXX --alpha XXX --N_epochs XXX --type "TYPE"
 ``` 
 - `--wave` specifies based on which wavelet the DFD of the Radon tranform should be performed (`default='haar'`). The code uses the Pytorch Wavelet Toolbox (ptwt) which supports discrete wavelets, see also `pywt.wavelist(kind='discrete')`. 
 - `--levels` specifies up to how many levels the wavelet decomposition should be performed (`default=8`). Since the size of the preprocessed images in the training set is $`256 \times 256`$ it has to be an integer between 1 and 8. 
-- `--s2n_ratio` choses what what signal-to-noise ratio the filters should be learned (`default=8`). Possible signal-to-noise ratios are 2,4,8,16,32,64,128,256, 512 
-- `--N_epochs` defines for how many epochs the networks should be trained (`default=100`)
+- `--alpha` specifies the noise level in whcih should be trained (`default=4`). Possible noise levels are 32,28,24,20,16,12,8,4,0. 
+- `--N_epochs` defines for how many epochs the networks should be trained (`default=20`)
+- `--type` defines which contraints should be applied to the filters. You can choose between porposed, unconstrained, nonexpansice or linear. (`default=proposed`)
 
 ## Testing
 
 To test the final regularization model on your own images run
 ```
-python3 test.py INPUT_FOLDER OUTPUT_FOLDER --wave 'WAVELET' --levels XXX --s2n-ratio XXX 
+python test.py --wave 'WAVELET' --levels XXX --alpha XXX --types "TYPES"
 
-``` 
-The images in the `INPUT_FOLDER` should be of PNG or JPG format and of course the chosen configuation must have been trained beforehand. Also select a separate `OUTPUT_FOLDER` for each configuration!
+```
+The test images should be saved in the DATASET_FOLDER in a subfolder called "testset". The images should be of PNG or JPG format and of course the chosen configuation must have been trained beforehand. Results are saved in the corresponding folders were the training process was saved. 
 
 
 ## Authors and acknowledgment
