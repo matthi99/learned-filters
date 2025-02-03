@@ -93,7 +93,6 @@ for ct in tqdm(ct_list):
                     z[x_coord,y_coord]=mi-y[x_coord,y_coord]
                 else:
                     z[x_coord,y_coord]=ma-y[x_coord,y_coord]
-            print(np.linalg.norm(z))
         else: 
             print("Wrong argument for --noise!")
             
