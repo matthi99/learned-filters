@@ -3,7 +3,7 @@
 This repository is created for learning non-linear regularizing filters for inverting the Radon transform. For more detail about non-linear regularizing filters see:
 
 ```
-Ebner, A., & Haltmeier, M. (2023). When noise and data collide: Using non-linear Filters to save the day in inverse problems. Best Journal you can imagine, 62, 66-83.
+Ebner, A., & Haltmeier, M. (2023). When noise and data collide: Using non-linear Filters to save the day in inverse problems. arXiv preprint arXiv:2406.17461 (2024).
 ```
 
 # Introduction
