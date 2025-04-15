@@ -1,9 +1,9 @@
 # Learned filters
 
-This repository is created for learning non-linear regularizing filters for inverting the Radon transform. For more detail about non-linear regularizing filters see:
+This repository is created for learning non-linear regularizing filters for inverting the Radon transform. If you use this repository please cite:
 
 ```
-Ebner, A., & Haltmeier, M. (2023). When noise and data collide: Using non-linear Filters to save the day in inverse problems. arXiv preprint arXiv:2406.17461 (2024).
+Ebner, A., Schwab, M., & Haltmeier, M. (2025). Error Estimates for Weakly Convex Frame-Based Regularization Including Learned Filters. SIAM Journal on Imaging Sciences, 18(2), 822-850.
 ```
 
 # Introduction
@@ -33,8 +33,9 @@ git clone https://git.uibk.ac.at/c7021123/learned-filters.git
 2. Intall and activate the virtual environment.
 ```
 cd learned-filters
-conda env create -f env_filter.yml
+conda create -n filter python=3.9
 conda activate filter
+pip install -r requirements.txt
 ``` 
 
 # Usage
