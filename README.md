@@ -36,7 +36,7 @@ cd learned-filters
 conda create -n filter python=3.9
 conda activate filter
 ```
-3. Install [pytorch](https://pytorch.org/get-started/locally/) (<= 2.6.0) and other packages
+3. Install [Pytorch](https://pytorch.org/get-started/locally/) (<= 2.6.0) and other packages. 
 ```
 pip install -r requirements.txt
 ``` 
