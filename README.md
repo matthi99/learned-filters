@@ -60,7 +60,7 @@ When running `create_data.py` the preprocessed images will be saved in your `DAT
 
 To train the framework run the command
 ```
-python train.py --wave 'WAVELET' --levels XXX --alpha XXX --N_epochs XXX --type "TYPE"
+python train.py --wave "WAVELET" --levels XXX --alpha XXX --N_epochs XXX --type "TYPE"
 ``` 
 - `--wave` specifies based on which wavelet the DFD of the Radon tranform should be performed (`default='haar'`). The code uses the Pytorch Wavelet Toolbox (ptwt) which supports discrete wavelets, see also `pywt.wavelist(kind='discrete')`. 
 - `--levels` specifies up to how many levels the wavelet decomposition should be performed (`default=8`). Since the size of the preprocessed images in the training set is $`256 \times 256`$ it has to be an integer between 1 and 8. 
@@ -72,7 +72,7 @@ python train.py --wave 'WAVELET' --levels XXX --alpha XXX --N_epochs XXX --type 
 
 To test the final regularization model on your own images run
 ```
-python test.py --wave 'WAVELET' --levels XXX --alpha XXX --types "TYPES"
+python test.py --wave "WAVELET" --levels XXX --alpha XXX --types "TYPES"
 
 ```
 The test images should be saved in the DATASET_FOLDER in a subfolder called "testset". The images should be of PNG or JPG format and of course the chosen configuation must have been trained beforehand. Results are saved in the corresponding folders were the training process was saved. 
