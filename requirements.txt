@@ -27,9 +27,6 @@ scipy==1.13.1
 six==1.17.0
 sympy==1.13.1
 tifffile==2024.8.30
-torch==2.6.0+cu118
-torchaudio==2.6.0+cu118
-torchvision==0.21.0+cu118
 tqdm==4.67.1
 typing_extensions==4.12.2
 zipp==3.21.0
