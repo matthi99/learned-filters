@@ -30,11 +30,14 @@ Although some of the required properties for the filters $`\varphi_\alpha`$ are 
 git clone https://git.uibk.ac.at/c7021123/learned-filters.git
 ``` 
 
-2. Intall and activate the virtual environment.
+2. Create and activate the virtual environment.
 ```
 cd learned-filters
 conda create -n filter python=3.9
 conda activate filter
+```
+3. Install [pytorch](https://pytorch.org/get-started/locally/) (<= 2.6.0) and other packages
+```
 pip install -r requirements.txt
 ``` 
 
