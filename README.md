@@ -25,21 +25,23 @@ Although some of the required properties for the filters $`\varphi_\alpha`$ are 
 
 # Instalation
 
-1. Clone the git repository. 
+1. Clone the git repository:
 ```
 git clone https://git.uibk.ac.at/c7021123/learned-filters.git
 ``` 
 
-2. Create and activate the virtual environment.
+2. Create and activate the virtual environment:
 ```
 cd learned-filters
 conda create -n filter python=3.9
 conda activate filter
 ```
-3. Install [Pytorch](https://pytorch.org/get-started/locally/) (<= 2.6.0) and other packages. 
-```
-pip install -r requirements.txt
-``` 
+3. Install the required dependencies:
+- Install [Pytorch](https://pytorch.org/get-started/locally/) (Version <= 2.6.0)
+- Install other packages
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 # Usage
 
