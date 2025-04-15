@@ -3,7 +3,7 @@
 *.xlsx
 *.pt
 *.pdf
-*.txt
+path_to_data.txt
 
 # Folders
 data/
